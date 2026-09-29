@@ -1,0 +1,286 @@
+# Customers Domain Specification
+
+## 1. Domain Purpose
+
+The Customers domain owns customer identity within a shop, customer contact information, customer ordering context, repeat-customer recognition, customer information needed for approved checkout behavior, shop-specific customer history, and delivery-related customer information where applicable.
+
+It does not own merchant users or authentication, shop identity, products, inventory, carts, orders, payments, WhatsApp provider/integration, delivery-partner management, or analytics implementation. Those belong to their respective domains.
+
+## 2. Customer Identity Model
+
+The current product does not require traditional customer accounts with usernames/passwords, customer login, or global platform accounts. The product concept is a lightweight, shop-specific customer identity.
+
+```text
+Shop A
+   └── Customer X
+
+Shop B
+   └── Customer Y
+```
+
+Even if the same person shops at both stores, the platform must not automatically treat them as one global customer. The exact identification mechanism remains unresolved.
+
+## 3. Shop-Specific Customer Isolation
+
+Follow `.ai/skills/multi-tenancy/SKILL.md` as the governing engineering rule.
+
+- Customer identity and history belong to a specific shop.
+- Customer information must not cross shop boundaries.
+- Shop A must not access Shop B's customer records.
+- The same WhatsApp number may exist as separate customer identities in multiple shops.
+- An identifier from one shop must not grant access to another shop's customer data.
+
+These are business and security requirements; this specification does not design their technical implementation.
+
+## 4. Customer Information
+
+The currently approved checkout concepts are:
+
+- Customer name.
+- WhatsApp number.
+- Delivery address when home delivery is selected.
+
+Do not automatically add email, date of birth, gender, profile photo, loyalty information, or preferences; these are not supported by existing product requirements.
+
+## 5. WhatsApp Number
+
+The product uses a WhatsApp number as customer contact information and an order-communication destination. It may also participate in repeat-order recognition or prefill context within the same shop.
+
+A WhatsApp number must not become a global identity that merges customers across shops or, by itself, authorize access to customer history. For example:
+
+```text
+Shop A: Customer identity with name Rahul and WhatsApp number X
+Shop B: Customer identity with name Rahul and WhatsApp number X
+```
+
+These remain separate shop-specific customer identities unless a future approved requirement changes this. Phone-number normalization and formatting rules are not finalized.
+
+## 6. Customer Creation
+
+Conceptually, customer information is provided in the context of a shop's ordering flow:
+
+```text
+Customer visits Shop A
+        ↓
+Browses Shop A catalog
+        ↓
+Adds products to cart
+        ↓
+Checkout
+        ↓
+Provides name and WhatsApp number
+        ↓
+Customer identity is created or recognized for Shop A
+        ↓
+Order is created
+```
+
+This describes product behavior only. It does not decide an API, persistence mechanism, session mechanism, or exact customer-matching rule.
+
+## 7. Returning Customer
+
+A returning customer may be recognized within the same shop using an approved customer-identity mechanism. The intended experience may prefill a customer name, recognize a WhatsApp number, or reuse previously known delivery information where appropriate.
+
+Do not assume automatic login, cross-shop recognition, or that all historical information is always prefilled. The exact recognition and prefill behavior is unresolved.
+
+## 8. Customer Data Used During Checkout
+
+Distinguish conceptually between:
+
+- **Customer profile/history:** longer-lived shop-specific customer information, if maintained.
+- **Checkout information:** information supplied for the current order.
+- **Order snapshot:** information that may need to remain associated with a historical order.
+
+The exact storage and snapshot behavior is not decided here. The Orders domain defines the historical order representation; this domain does not define its schema.
+
+## 9. Delivery Address
+
+Home-delivery checkout requires a customer delivery address. Do not assume a complex address model.
+
+The existing requirements do not decide whether the MVP supports one address or multiple saved addresses, address labels, GPS coordinates, landmarks, separate city/state/pincode fields, or a free-form address. Those details are unresolved.
+
+## 10. Pickup vs Delivery
+
+For pickup, customer contact information is required according to checkout requirements; no delivery address is required unless another approved requirement says otherwise. For home delivery, customer contact information and a delivery address are required.
+
+Final validation rules belong in the relevant Order/checkout specification and are not defined here.
+
+## 11. Customer History
+
+Customer history is shop-specific. It may conceptually include previous orders, order dates, purchased products, fulfillment information, or order status, subject to approved requirements.
+
+Do not assume merchants should automatically see every customer detail. Merchant visibility and access must follow approved authorization and privacy rules. Analytics definitions belong to Analytics, not this domain.
+
+## 12. Customer vs Order
+
+```text
+Customer
+=
+shop-specific identity/contact context
+
+Order
+=
+historical purchase transaction
+```
+
+Customer information may change later without silently changing the meaning of a prior order. The Orders domain defines historical order behavior; this specification does not design its snapshot schema.
+
+## 13. Customer vs Cart
+
+```text
+Customer
+=
+shop-specific identity
+
+Cart
+=
+current shopping state
+```
+
+The Cart domain owns cart persistence and lifecycle. This specification does not define them.
+
+## 14. Customer Deletion / Deactivation
+
+Customer deletion, anonymization, deactivation, and restoration behavior are not finalized. Decisions must account for previous orders, active carts, customer history, and whether the customer can be recognized again later. Preserve historical-order integrity according to approved Order rules; do not assume hard deletion or soft deletion.
+
+## 15. Customer Privacy
+
+- Customer information remains shop-scoped.
+- One shop must not expose another shop's customers or customer history.
+- A WhatsApp number must not merge customers across shops.
+- Customer information is exposed only to authorized users and processes.
+- Public customer-facing pages do not expose customer records.
+- Catalog/public-shop behavior does not expose customer information.
+
+Follow `.ai/skills/security/SKILL.md` and `.ai/skills/multi-tenancy/SKILL.md`. This is domain-specific privacy guidance, not a general privacy policy.
+
+## 16. Customer Authentication Boundary
+
+```text
+Customer identity
+≠
+Customer authentication
+```
+
+The current product does not establish a traditional customer login/account system. Do not assume JWT, sessions, passwords, OTP, OAuth, or social login. A WhatsApp number is contact/identity context, not automatically an authentication credential.
+
+## 17. Customer Identification and Security
+
+The exact information sufficient to recognize a returning customer within a shop is unresolved. Potential concepts to evaluate include a WhatsApp number, a customer identifier, browser/session context, or a verification mechanism; none is selected here.
+
+Possession or knowledge of a WhatsApp number must not be treated as authorization to access all customer history. Identity recognition and authorization are separate concerns.
+
+## 18. Customer Access by Merchant
+
+Merchants may need customer information for legitimate shop operations such as order fulfillment. Merchant access is limited to the merchant's authorized shop and does not extend to customers of another shop. Customer identity is not platform-global.
+
+The exact merchant visibility rules, fields, history access, and permission matrix are not finalized.
+
+## 19. Customer Access by Super Admin
+
+Super Admin may require platform-level operational visibility according to approved authorization. Platform-level status does not by itself define unrestricted access to all customer data. The final access and privacy decision is unresolved.
+
+## 20. Business Invariants
+
+The following requirements are approved by the product and business-rule sources:
+
+- Customer identity is shop-specific.
+- The same person may have separate customer identities across different shops.
+- The same WhatsApp number may exist in multiple shops without merging those identities.
+- Customer history remains shop-scoped.
+- Merchant access to customer information is limited to authorized shops.
+- Customer information is not exposed through public shop/catalog access.
+- Customer identity is separate from merchant identity.
+- Customer information may change without silently changing the meaning of a historical order; exact snapshot behavior remains subject to the Orders specification.
+
+## 21. Cross-Domain Relationships
+
+These are conceptual domain relationships, not necessarily database foreign keys:
+
+### Shops
+
+Provides the shop/tenant context for customer identity and history.
+
+### Users & Merchant Accounts
+
+Determines who may access customer information, subject to approved authorization.
+
+### Catalog
+
+Provides the shop-specific products customers browse.
+
+### Cart
+
+Holds current shopping state in a specific shop context; the Cart domain owns its behavior.
+
+### Orders
+
+Customers place orders; order history is associated with the relevant shop-specific customer context, subject to the finalized Orders specification.
+
+### Notifications
+
+WhatsApp/order notifications may use customer contact information according to approved behavior. The Notifications domain owns integration and delivery behavior.
+
+### Analytics
+
+Customer metrics may be aggregated at shop or platform level only under approved analytics and privacy rules.
+
+## 22. Unresolved Decisions
+
+No decision below is finalized by this specification.
+
+| Decision | Why unresolved | Impact |
+|---|---|---|
+| Exact customer identity key. | The product allows lightweight shop-specific identity but does not define its key. | Returning-customer matching cannot be finalized. |
+| WhatsApp-number uniqueness within a shop. | No uniqueness rule is approved. | Duplicate or matching customer behavior remains open. |
+| Phone-number normalization and formatting. | No format or normalization rule is documented. | Comparisons and accepted input formats cannot be specified. |
+| Whether WhatsApp verification is required. | No verification requirement or mechanism is approved. | Trust in contact information and account recovery cannot be decided. |
+| Whether customers can edit their information. | Product requirements do not define editing rules. | Customer-data correction behavior remains open. |
+| Returning-customer recognition. | The identity mechanism is unresolved. | Recognition behavior cannot be implemented consistently. |
+| What customer information may be prefilled. | Prefill is a product possibility, not a finalized field-by-field rule. | Checkout presentation and data exposure remain open. |
+| Delivery address structure. | Only the need for an address on home delivery is approved. | Address collection and validation are unspecified. |
+| Multiple saved addresses and address labels. | No saved-address requirement is defined. | Address reuse behavior remains open. |
+| Address history. | Retention and historical behavior are not specified. | Prior delivery information handling cannot be finalized. |
+| Customer deletion and anonymization. | Deletion policy is unresolved. | Personal data and related records handling remain open. |
+| Customer deactivation and restoration. | No lifecycle states or transitions are approved. | Recognition and access after deactivation remain undefined. |
+| Historical customer information. | Order snapshot and retention details are unresolved. | Historical order interpretation cannot be fully specified. |
+| Merchant visibility of customer history. | The final authorization and privacy rules are not approved. | Merchant-facing customer access cannot be finalized. |
+| Super Admin access to customer information. | Platform-level access does not establish unrestricted data access. | Admin visibility and privacy controls remain open. |
+| Customer data retention. | No retention period or policy is approved. | Long-term storage and deletion behavior remain undefined. |
+| Detailed customer privacy requirements. | Existing documents establish isolation/minimization principles but not a full policy. | Collection, exposure, and retention details need approval. |
+| Customer authentication, if ever introduced. | The current MVP does not require traditional customer accounts; future auth is not approved. | Do not implement login or verification flows by assumption. |
+
+## 23. Explicit Non-Goals
+
+This specification does not define Django models, database schema, migrations, serializers, API endpoints, authentication implementation, customer login, OTP or password authentication, WhatsApp provider/API, cart implementation, order state machine, payment processing, delivery-partner management, analytics implementation, frontend implementation, or notification implementation.
+
+## 24. Implementation Gate
+
+> The Customers domain must not be implemented until the unresolved customer-identity, privacy, and checkout-related decisions required for implementation are reviewed and approved.
+
+After approval, implementation must follow `AGENTS.md`, `.ai/project-context/product.md`, `.ai/project-context/architecture.md`, `.ai/project-context/business-rules.md`, `.ai/project-context/development-status.md`, `.ai/project-context/domains/users-and-merchant-accounts.md`, `.ai/project-context/domains/shops.md`, `.ai/project-context/domains/catalog.md`, `.ai/project-context/domains/inventory.md`, this domain specification, and relevant engineering skills. The implementation agent must not silently resolve unresolved business decisions.
+
+## 25. Git Workflow
+
+Follow the mandatory repository workflow:
+
+```text
+git status
+git checkout main
+git pull origin main
+git checkout -b <task-id>/<short-description>
+```
+
+- Never work directly on `main`.
+- Inspect existing changes first; do not discard them automatically.
+- Destructive Git commands require explicit approval.
+- Ask for a task ID if none is provided before creating a branch.
+- Keep commits small and task-related; never commit secrets.
+- Push the task branch and create a PR against `main`.
+- Do not force-push or rewrite history without authorization.
+
+Follow `AGENTS.md` for the complete workflow.
+
+## Final Requirement
+
+Create only `.ai/project-context/domains/customers.md`. Do not modify any other file. Do not create models, migrations, APIs, authentication, authorization, or customer functionality. Do not resolve unresolved customer-identity decisions.
