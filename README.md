@@ -9,6 +9,10 @@ Backend service for the grocery-store multi-tenant platform.
 - Django REST Framework
 - PostgreSQL
 
+## Local Development
+
+The Docker-based development setup starts Django and PostgreSQL together. See [DOCKER_SETUP_INSTRUCTIONS.md](DOCKER_SETUP_INSTRUCTIONS.md) for startup commands, DBeaver connectivity, Postman setup, troubleshooting, and database reset warnings.
+
 ## Architecture
 
 Modular monolith.
