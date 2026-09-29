@@ -1,0 +1,261 @@
+# Grocery Platform Product Context
+
+## Purpose and Scope
+
+This document is the canonical product and business-context reference for the Grocery Platform backend. It describes expected product behavior for human developers and AI coding agents. It does not define final database tables, Django models, API endpoints, authentication, permissions, infrastructure, deployment, or third-party providers. Those decisions belong in the appropriate architecture, domain, API, or implementation documentation.
+
+The product is a multi-tenant grocery-store platform connecting grocery shops and merchants with customers, with a centralized Super Admin platform for participating shops, a master catalog, campaigns, and analytics. Its three primary actors are:
+
+1. Super Admin
+2. Merchant / Shopkeeper
+3. Customer
+
+The backend is in the foundation and architecture stage. Domain models and workflows should not be assumed finalized unless documented elsewhere.
+
+## 1. Super Admin
+
+The Super Admin manages the overall platform.
+
+### Shop Management
+
+The Super Admin can onboard shops, review merchant applications, approve or reject applications, create shops directly, and manage shop and platform status. The exact onboarding implementation and approval workflow belong in the Shop domain specification.
+
+### Master Catalog
+
+The Super Admin maintains the platform's master catalog of standardized categories, products, and product variants. Merchants can use products from this master catalog in their own shop catalogs.
+
+### Merchant-Created Products
+
+A merchant may create a product that is not in the master catalog. It initially belongs to that merchant's catalog and should enter a Super Admin review queue. Conceptually:
+
+```text
+Merchant creates product
+        ↓
+Merchant catalog
+        ↓
+Pending review
+        ↓
+Super Admin review
+      /     \\
+   Approve   Reject
+      ↓
+Master catalog
+```
+
+The exact review, approval, rejection, and catalog-merging behavior belongs in the Catalog domain specification.
+
+### Campaigns and Advertisements
+
+The Super Admin can create campaigns or advertisements displayed across all shops or selected shops. A campaign may target one or more shops. Campaign data, targeting rules, scheduling, and presentation behavior will be defined later.
+
+### Analytics
+
+Platform-level analytics are expected eventually and may include total and active shops, orders, sales- or revenue-related metrics, shop and product performance, customer-related metrics, and campaign performance. Metric definitions will be finalized separately.
+
+## 2. Merchant / Shopkeeper
+
+A merchant operates a grocery shop on the platform and uses an ERP-style web interface. The merchant should be able to:
+
+- View and manage shop profile information.
+- Manage the shop catalog, products, and product variants.
+- Manage prices, stock / inventory, availability, product status, and other shop-specific product configuration.
+- View incoming orders and review their details.
+- Accept or reject orders and manage order fulfillment status.
+- View shop analytics.
+- Receive order-related notifications through WhatsApp.
+
+The merchant is responsible for evaluating an order before accepting or rejecting it. In the initial product scope, order acceptance and rejection happen through the merchant ERP. WhatsApp is primarily a notification and communication channel; merchants do not need to accept or reject orders directly through WhatsApp.
+
+## 3. Customer Entry
+
+The primary customer entry point is scanning a shop-specific QR code. The customer should reach that shop's experience without having to search for the shop.
+
+## 4. Customer Catalog Experience
+
+After scanning a shop's QR code, a customer should see only products available for that shop, not another shop's catalog through the same shop-specific flow. The customer should be able to browse categories and products, view product details, select variants and quantities, add products to a cart, modify cart quantities, remove products, and proceed to checkout.
+
+## 5. Product Variants
+
+Products may have multiple variants, for example milk in 500 ml, 1 L, or 2 L sizes, or rice in 1 kg, 5 kg, or 10 kg sizes. The product and variant data model will be defined in the Catalog domain specification.
+
+## 6. Merchant Catalog
+
+Each merchant controls their own shop catalog and can use products from the platform master catalog. Merchant-specific information may include selling price, stock, availability, product status, and merchant-specific configuration. Each merchant controls their own pricing and inventory. The same master product may have different selling prices in different shops; the master product does not dictate a merchant's selling price.
+
+For example, a master product such as Amul Milk 1 L may be sold at ₹65 by Shop A, ₹68 by Shop B, and ₹63 by Shop C.
+
+## 7. Merchant-Created Products
+
+A merchant may use a product that does not currently exist in the master catalog, such as a local homemade product. It can remain in that merchant's shop catalog and may be submitted for Super Admin review. The detailed review, approval, rejection, and master-catalog creation behavior will be specified later.
+
+## 8. Customer Checkout
+
+Customers do not need to register or log in before placing an order. At checkout, a customer provides their name and WhatsApp number, and provides an address when choosing home delivery.
+
+The customer chooses one of these fulfillment methods:
+
+- Pickup
+- Home delivery
+
+Address information is required for delivery. Address validation and delivery-zone rules will be defined later.
+
+## 9. Repeat Ordering
+
+Repeat ordering should be convenient without requiring a traditional customer account. The platform may maintain a lightweight customer identity associated with a specific shop. Conceptually:
+
+```text
+Shop
+  ↓
+Shop-specific customer
+  ↓
+Customer information
+  ↓
+Order history
+```
+
+When a customer provides the same WhatsApp number for that shop, previously provided information such as name or address may be reused or pre-filled. A password-based customer account is not required for this experience. Customer identification, privacy, security, and repeat-order behavior will be defined in the Customer domain specification.
+
+## 10. Orders
+
+A customer creates an order from their cart. The merchant reviews the order before accepting it. The initial lifecycle is conceptual:
+
+```text
+PENDING
+   ↓
+ACCEPTED
+   ↓
+PREPARING
+   ↓
+READY
+   ↓
+COMPLETED
+```
+
+An order may alternatively be rejected:
+
+```text
+PENDING
+   ↓
+REJECTED
+```
+
+The exact order state machine, cancellation rules, status transitions, inventory behavior, and delivery workflow belong in the Order domain specification. Do not infer additional order states from this document.
+
+## 11. Pickup and Home Delivery
+
+Customers can choose `PICKUP` or `DELIVERY`. For pickup, the customer collects the order from the shop. For delivery, the customer provides a delivery address. The initial product does not require a centralized delivery-partner system. Delivery partners, tracking, delivery zones, and delivery assignment, if introduced later, will be defined separately.
+
+## 12. Payments
+
+In the current product scope, payment is handled by the merchant rather than through the platform's online payment gateway. The merchant may provide payment instructions through WhatsApp, UPI, UPI QR, or physical payment at the shop. The platform does not currently need an online payment gateway integration. The payment-status model will be defined separately. Do not introduce Razorpay, Stripe, or another payment gateway unless explicitly approved later.
+
+## 13. WhatsApp
+
+WhatsApp is an important communication channel used initially for notifications and acknowledgements.
+
+Customer notifications may include an order-received message with the order number, total, and status; an order-accepted message; and other relevant order-status notifications introduced later.
+
+Merchant notifications may include a new-order message with the order number, customer information, items, and total. The merchant reviews and accepts or rejects the order in the ERP, not through WhatsApp in the current scope.
+
+The WhatsApp provider and API architecture will be defined later.
+
+## 14. Shop QR Code
+
+Each shop has a shop-specific QR code that identifies the shop and leads to its shop-specific public URL. A QR code represents a shop, not a table or an individual product. Customers should not have to manually search for the shop after scanning the QR code.
+
+Conceptually:
+
+```text
+Shop QR
+   ↓
+Shop-specific public URL
+   ↓
+Shop catalog
+   ↓
+Customer ordering
+```
+
+The exact URL structure, QR generation mechanism, security, and implementation will be defined later.
+
+## 15. Merchant Onboarding
+
+Two onboarding paths are supported conceptually.
+
+**Super Admin creates a merchant and shop:**
+
+```text
+Super Admin
+     ↓
+Create Shop
+     ↓
+Create Merchant
+     ↓
+Merchant access
+```
+
+**Merchant applies:**
+
+```text
+Merchant
+     ↓
+Application
+     ↓
+Super Admin review
+     ↓
+Approve / Reject
+     ↓
+Merchant access
+```
+
+Onboarding fields, approval workflow, statuses, and account activation behavior will be defined in the Shop domain specification.
+
+## 16. Merchant Accounts
+
+For the initial product, a merchant / shop may use one shared credential usable by approximately two or three people within the shop. The backend architecture should not prevent future support for individual users and shop-level roles. Authentication and membership architecture are intentionally not finalized. Do not implement assumptions based solely on this section.
+
+## 17. Shop Isolation
+
+Each merchant operates in their own shop context. Conceptually, each shop has its own catalog, inventory, customers, orders, and analytics. Merchant users must only access data belonging to shops they are authorized to manage. The Super Admin has platform-level access. The technical multi-tenancy implementation will be defined separately.
+
+## 18. Analytics
+
+Analytics are required at both merchant and platform levels.
+
+Merchant analytics may initially include orders, sales- or revenue-related metrics, top-selling products, low-stock information, rejected and completed orders, average order value, and customer-related metrics.
+
+Super Admin analytics may initially include total and active shops, platform orders, platform sales- or revenue-related metrics, shop and product performance, customer-related metrics, and campaign performance.
+
+Exact metric definitions and calculation rules will be documented later.
+
+## 19. Product Boundaries
+
+The following are out of scope until explicitly approved:
+
+- Native Android application.
+- Native iOS application.
+- Centralized online payment gateway.
+- Merchant order acceptance or rejection directly through WhatsApp.
+- Centralized delivery-partner management.
+- Customer password-based accounts.
+- Microservices.
+- Advanced event-driven architecture.
+- Platform monetization or commission model.
+- Complex ERP accounting functionality.
+
+These may be considered in future phases.
+
+## 20. Important Documentation Boundary
+
+This document describes product behavior and business context. It does not define final database tables, Django models, API endpoints, authentication implementation, permission classes, serializers, views, infrastructure, deployment architecture, or specific third-party providers. Those decisions belong in the appropriate architecture, domain, API, or implementation documentation.
+
+## 21. Source of Truth
+
+When implementing product functionality:
+
+1. Read the root `AGENTS.md`.
+2. Read this `product.md`.
+3. Read the relevant domain specification.
+4. Follow approved architecture decisions.
+5. Do not invent undocumented business behavior.
+
+If a requirement conflicts with this document, do not silently choose a behavior. Identify the conflict and request clarification.
