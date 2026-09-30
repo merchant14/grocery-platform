@@ -526,7 +526,7 @@ Inventory does not own Product or Variant definitions.
 - Tenant scope: Tenant-owned.
 - Status: **CONCEPTUAL**.
 
-A permanent Customer record is created or identified when an Order is successfully created, not merely because a Cart is started. Abandoned carts do not by themselves create a permanent Customer record.
+A permanent Shop-specific Customer record is created when the customer first provides their WhatsApp number for that Shop. An initially anonymous Cart may become associated with that Customer before checkout; an abandoned Cart may therefore be associated with a permanent Customer record.
 
 The Customer is shop-specific and does not require a traditional login/account. Exact cart persistence and identity representation remain database-design decisions.
 
@@ -1032,7 +1032,7 @@ The following business decisions have been explicitly resolved during relationsh
 3. **Products may have multiple variants.** Variant-level price and inventory are supported; non-variant Products may themselves be sellable.
 4. **Merchant-created catalog items can be submitted for Super Admin review.** On approval, the item is copied into the Master Catalog while the Shop Product remains independent.
 5. **Inventory is Shop-specific and tracked at sellable-item level.** Variant stock is used when variants exist; otherwise Product stock may be used.
-6. **Customer records are Shop-specific.** A current Customer record is created/identified when an Order is successfully created; abandoned carts do not create permanent Customer records.
+6. **Customer records are Shop-specific.** Within a Shop, the WhatsApp number is the primary identifier for recognizing a returning Customer. A permanent Customer record is created when the customer first provides that WhatsApp number, including before checkout; abandoned carts may therefore be associated with permanent Customer records.
 7. **Cart has direct Shop context and cannot mix Shops.** Checkout creates the Order, but no persistent Cart → Order relationship is required.
 8. **One current Customer record per customer per Shop.** Repeat orders may update the current Customer details. Orders remain complete historical transaction records.
 9. **Full Order history is retained for now.** Customer UI may show only the latest 2–3 Orders; this does not delete older Orders.
@@ -1109,7 +1109,7 @@ No Django model implementation should begin before this relationship map and the
 |---|---|---|---|---|
 | User ↔ Merchant representation | Merchant is a separate business entity | Exact identity/authentication representation is not finalized | Users, Shops | User/Merchant physical relationship |
 | User ↔ Shop identity model | MVP uses shared Shop credentials | Individual User accounts/roles are future capability | Users, Shops | Authentication/access schema |
-| Shop ↔ Customer identity matching | One current Customer record per Shop | Exact matching/key behavior for repeat customers remains a DB/API detail | Customers, Orders | Customer uniqueness/matching |
+| Shop ↔ Customer identity matching | One current Customer record per Shop, recognized primarily by the Shop-scoped WhatsApp number | Phone normalization, formatting, verification, and physical uniqueness representation remain open | Customers, Orders | Customer uniqueness/matching implementation |
 | Shop ↔ Cart cardinality | Cart is Shop-scoped | Active-cart persistence/cardinality remains to be finalized | Cart, Shops | Cart identity/schema |
 | Product/Variant physical model | Product may have many variants; non-variant product may be sellable | Exact mandatory/optional fields and identity remain DB decisions | Catalog, Inventory | Catalog schema |
 | Master Product ↔ Shop Product representation | Shop Product remains independent; approved merchant-created items are copied into Master Catalog | Exact reference/link representation remains open | Catalog | Catalog reference fields |

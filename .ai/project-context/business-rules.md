@@ -102,18 +102,21 @@ Reservation logic, stock-deduction timing, low-stock thresholds, overselling beh
 ## 12. Customer Identity Rules
 
 - Customer identity is shop-specific, not globally shared across merchants by assumption.
-- A WhatsApp number may be used as part of a lightweight repeat-order identity for a specific shop.
+- Within a Shop, the customer's WhatsApp number is the primary identifier for recognizing a returning Customer.
+- A permanent Shop-specific Customer record is created when the customer first provides their WhatsApp number for that Shop, even before an Order is successfully created.
 - Customer information may be reused or pre-filled for future orders at the same shop when the customer provides the same WhatsApp number.
 - A WhatsApp number must not expose another shop's customer history.
 - Traditional customer username/password accounts are not required by the current MVP concept.
 
-The exact identity key, identification process, privacy behavior, and authentication mechanism are **Not Finalized / Require Decision**.
+Phone-number normalization and formatting, detailed recognition behavior, privacy handling, and authentication mechanism are **Not Finalized / Require Decision**. The Shop-scoped WhatsApp identity rule and pre-order Customer creation are approved.
 
 ## 13. Cart Rules
 
 - A cart is associated with a specific shop context.
 - Products added to a cart belong to its intended shop/catalog context.
 - A cart must not mix unrelated shops unless a future approved requirement introduces multi-shop carts.
+- An initially anonymous cart may become associated with the Shop-specific Customer when the customer first provides their WhatsApp number.
+- Customer creation may therefore occur before checkout and before Order creation.
 - Prices and availability are validated appropriately before order creation.
 
 Cart persistence, guest-session mechanism, expiration, quantity limits, and price-snapshot behavior are **Not Finalized / Require Decision**.
@@ -260,7 +263,7 @@ The following require product/business approval and must not be answered by assu
 
 - Final merchant/shop onboarding statuses.
 - Merchant account and membership model.
-- Customer identity mechanism.
+- Customer phone-number normalization and formatting.
 - Exact catalog/master-catalog approval workflow.
 - Product and variant structure.
 - Inventory deduction behavior.

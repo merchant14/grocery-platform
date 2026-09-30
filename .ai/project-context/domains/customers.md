@@ -18,7 +18,7 @@ Shop B
    └── Customer Y
 ```
 
-Even if the same person shops at both stores, the platform must not automatically treat them as one global customer. The exact identification mechanism remains unresolved.
+Even if the same person shops at both stores, the platform must not automatically treat them as one global customer. Within a Shop, the customer's WhatsApp number is the primary identifier for recognizing a returning Customer.
 
 ## 3. Shop-Specific Customer Isolation
 
@@ -57,7 +57,7 @@ These remain separate shop-specific customer identities unless a future approved
 
 ## 6. Customer Creation
 
-Conceptually, customer information is provided in the context of a shop's ordering flow:
+Conceptually, customer information is provided in the context of a shop's shopping flow:
 
 ```text
 Customer visits Shop A
@@ -66,22 +66,24 @@ Browses Shop A catalog
         ↓
 Adds products to cart
         ↓
-Checkout
+Provides WhatsApp number for Shop A
         ↓
-Provides name and WhatsApp number
+Permanent Shop-specific Customer record is created or recognized
         ↓
-Customer identity is created or recognized for Shop A
+Checkout may continue with current customer information
         ↓
 Order is created
 ```
 
-This describes product behavior only. It does not decide an API, persistence mechanism, session mechanism, or exact customer-matching rule.
+The permanent Shop-specific Customer record is created when the customer first provides their WhatsApp number for that Shop. Successful Order creation is not required; an abandoned Cart may therefore be associated with a Customer.
+
+This describes product behavior only. It does not decide an API, persistence mechanism, session mechanism, phone-number normalization, or detailed customer-data update rules.
 
 ## 7. Returning Customer
 
-A returning customer may be recognized within the same shop using an approved customer-identity mechanism. The intended experience may prefill a customer name, recognize a WhatsApp number, or reuse previously known delivery information where appropriate.
+A returning customer may be recognized within the same Shop using the customer's WhatsApp number as the primary identifier. The intended experience may prefill a customer name or reuse previously known delivery information where appropriate.
 
-Do not assume automatic login, cross-shop recognition, or that all historical information is always prefilled. The exact recognition and prefill behavior is unresolved.
+Do not assume automatic login, cross-shop recognition, or that all historical information is always prefilled. The exact prefill, update, normalization, and privacy behavior remains unresolved.
 
 ## 8. Customer Data Used During Checkout
 
@@ -166,7 +168,7 @@ The current product does not establish a traditional customer login/account syst
 
 ## 17. Customer Identification and Security
 
-The exact information sufficient to recognize a returning customer within a shop is unresolved. Potential concepts to evaluate include a WhatsApp number, a customer identifier, browser/session context, or a verification mechanism; none is selected here.
+The customer's WhatsApp number is the approved primary identifier for recognizing a returning Customer within the same Shop. Phone-number normalization, formatting, verification, and any additional context remain unresolved.
 
 Possession or knowledge of a WhatsApp number must not be treated as authorization to access all customer history. Identity recognition and authorization are separate concerns.
 
@@ -174,14 +176,14 @@ Possession or knowledge of a WhatsApp number must not be treated as authorizatio
 
 Merchants may need customer information for legitimate shop operations such as order fulfillment. Merchant access is limited to the merchant's authorized shop and does not extend to customers of another shop. Customer identity is not platform-global.
 
-The exact merchant visibility rules, fields, history access, and permission matrix are not finalized.
+Permanent Shop-specific Customer record is created or recognized
 
 ## 19. Customer Access by Super Admin
 
 Super Admin may require platform-level operational visibility according to approved authorization. Platform-level status does not by itself define unrestricted access to all customer data. The final access and privacy decision is unresolved.
 
 ## 20. Business Invariants
-
+The permanent Shop-specific Customer record is created when the customer first provides their WhatsApp number for that Shop. Successful Order creation is not required; an abandoned Cart may therefore be associated with a Customer.
 The following requirements are approved by the product and business-rule sources:
 
 - Customer identity is shop-specific.
@@ -189,19 +191,19 @@ The following requirements are approved by the product and business-rule sources
 - The same WhatsApp number may exist in multiple shops without merging those identities.
 - Customer history remains shop-scoped.
 - Merchant access to customer information is limited to authorized shops.
-- Customer information is not exposed through public shop/catalog access.
+A returning customer may be recognized within the same Shop using the customer's WhatsApp number as the primary identifier. The intended experience may prefill a customer name or reuse previously known delivery information where appropriate.
 - Customer identity is separate from merchant identity.
-- Customer information may change without silently changing the meaning of a historical order; exact snapshot behavior remains subject to the Orders specification.
+The exact prefill, update, normalization, and privacy behavior remains unresolved.
 
-## 21. Cross-Domain Relationships
+The customer's WhatsApp number is the approved primary identifier for recognizing a returning Customer within the same Shop. Phone-number normalization, formatting, verification, and any additional context remain unresolved.
 
 These are conceptual domain relationships, not necessarily database foreign keys:
 
 ### Shops
 
-Provides the shop/tenant context for customer identity and history.
-
-### Users & Merchant Accounts
+| Phone-number normalization and formatting. | WhatsApp number is the primary identifier within a Shop, but accepted formats and normalization are not defined. | Comparisons and accepted input formats cannot be specified. |
+| Physical uniqueness enforcement within a shop. | One current Customer record exists per customer at a Shop, identified by the Shop-scoped WhatsApp number. | The database representation of that business rule remains open. |
+| Returning-customer recognition details. | WhatsApp number is the approved primary identifier within a Shop. | Prefill, update, verification, and privacy behavior remain open. |
 
 Determines who may access customer information, subject to approved authorization.
 
@@ -231,12 +233,12 @@ No decision below is finalized by this specification.
 
 | Decision | Why unresolved | Impact |
 |---|---|---|
-| Exact customer identity key. | The product allows lightweight shop-specific identity but does not define its key. | Returning-customer matching cannot be finalized. |
-| WhatsApp-number uniqueness within a shop. | No uniqueness rule is approved. | Duplicate or matching customer behavior remains open. |
+| Phone-number normalization and formatting. | WhatsApp number is the primary identifier within a Shop, but accepted formats and normalization are not defined. | Comparisons and accepted input formats cannot be specified. |
+| Physical uniqueness enforcement within a shop. | One current Customer record exists per customer at a Shop, identified by the Shop-scoped WhatsApp number. | The database representation of that business rule remains open. |
 | Phone-number normalization and formatting. | No format or normalization rule is documented. | Comparisons and accepted input formats cannot be specified. |
 | Whether WhatsApp verification is required. | No verification requirement or mechanism is approved. | Trust in contact information and account recovery cannot be decided. |
 | Whether customers can edit their information. | Product requirements do not define editing rules. | Customer-data correction behavior remains open. |
-| Returning-customer recognition. | The identity mechanism is unresolved. | Recognition behavior cannot be implemented consistently. |
+| Returning-customer recognition details. | WhatsApp number is the approved primary identifier within a Shop. | Prefill, update, verification, and privacy behavior remain open. |
 | What customer information may be prefilled. | Prefill is a product possibility, not a finalized field-by-field rule. | Checkout presentation and data exposure remain open. |
 | Delivery address structure. | Only the need for an address on home delivery is approved. | Address collection and validation are unspecified. |
 | Multiple saved addresses and address labels. | No saved-address requirement is defined. | Address reuse behavior remains open. |

@@ -44,6 +44,8 @@ current shopping state for that customer/shop context
 
 The current product does not require traditional customer login/account behavior. Cart ownership does not imply that a customer must authenticate. Anonymous or session-based cart behavior is unresolved.
 
+An initially anonymous Cart may exist without a Customer. When the customer first provides their WhatsApp number for the Shop, the Cart may become associated with the Shop-specific Customer, and the permanent Customer record may be created before checkout.
+
 ## 4. Cart Creation
 
 The conceptual flow is:
@@ -56,6 +58,10 @@ Browses its catalog
 Adds the first item
         ↓
 A cart exists in that shop context
+   ↓
+Customer provides WhatsApp number
+   ↓
+Cart may become associated with the Shop-specific Customer
 ```
 
 This does not decide API or persistence behavior. Whether an empty cart exists before the first item is added is unresolved.
@@ -192,13 +198,17 @@ Changing or clearing a cart must not modify an already-created order. An order r
 
 ## 19. Customer Information at Checkout
 
-Cart may hold or reference customer context during checkout, but Customers owns customer identity and Orders owns order/customer information. Conceptually:
+Cart may hold or reference customer context before or during checkout, but Customers owns customer identity and Orders owns order/customer information. When the customer first provides their WhatsApp number for the Shop, Customer creation/recognition may occur before an Order exists. Conceptually:
 
 ```text
 Customer
       ↓
 Cart
       ↓
+Customer provides WhatsApp number
+   ↓
+Shop-specific Customer association
+   ↓
 Checkout
       ↓
 Order
@@ -293,7 +303,7 @@ No decision below is finalized by this specification.
 |---|---|---|
 | Cart identity. | No cart identifier or identity mechanism is approved. | Cart lookup and ownership cannot be finalized. |
 | Anonymous cart behavior. | Customer authentication is not required, but anonymous/session behavior is unspecified. | Guest cart continuity and access remain open. |
-| Customer/cart relationship. | Customer identity is shop-specific, but whether a cart is linked to a recognized customer is undecided. | Repeat-customer behavior cannot be finalized. |
+| Customer/cart relationship. | An initially anonymous Cart may become associated with the Shop-specific Customer when the customer first provides their WhatsApp number. | Exact persistence and physical association representation remain open. |
 | One cart versus multiple carts per shop. | No active-cart cardinality is approved. | Cart creation, reuse, and switching behavior remain open. |
 | Multiple-shop carts and switching behavior. | Cross-shop carts are not approved; handling separate carts when switching shops is unspecified. | Existing carts may not be assumed cleared, retained, or merged. |
 | Cart persistence and browser/session continuity. | No persistence strategy is approved. | Returning to an in-progress cart cannot be specified. |
