@@ -1,0 +1,48 @@
+name: Pull Request Policy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate:
+    name: Validate task ID and branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate branch name and PR title
+        env:
+          BRANCH: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          branch_pattern='^(feature|fix|docs|test|chore)/[A-Z][A-Z0-9]*-[0-9]+-[a-z0-9-]+$'
+          task_id_pattern='[A-Z][A-Z0-9]*-[0-9]+'
+
+          if [[ ! "$BRANCH" =~ $branch_pattern ]]; then
+            echo "::error::Invalid branch name: $BRANCH"
+            echo "Expected: feature/INF-001-short-description (or fix/docs/test/chore)."
+            exit 1
+          fi
+
+          if [[ ! "$PR_TITLE" =~ $task_id_pattern ]]; then
+            echo "::error::PR title must include a task ID such as INF-001."
+            exit 1
+          fi
+
+          branch_task_id="$(grep -oE "$task_id_pattern" <<< "$BRANCH" | head -n1)"
+          title_task_id="$(grep -oE "$task_id_pattern" <<< "$PR_TITLE" | head -n1)"
+
+          if [[ "$branch_task_id" != "$title_task_id" ]]; then
+            echo "::error::Task ID in PR title ($title_task_id) must match branch ($branch_task_id)."
+            exit 1
+          fi
+
+          echo "Task ID and branch name validated."
