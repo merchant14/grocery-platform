@@ -31,7 +31,7 @@ analytics
 
 Each app represents a business domain. Use standard Django conventions initially. Do not require custom `services/`, `repositories/`, `domain/`, or `interfaces/` folders in every app; introduce such structures only when a domain's complexity justifies them.
 
-## 5. API Development Principles
+##  5. API Development Principles
 
 - Use Django REST Framework and REST architecture.
 - Version APIs under `/api/v1/`.
@@ -85,11 +85,11 @@ Documentation is part of the project. Follow this documentation hierarchy:
 
 ```text
 Root AGENTS.md
-	↓
+    ↓
 Project architecture documentation
-	↓
+    ↓
 Domain documentation
-	↓
+    ↓
 Implementation
 ```
 
@@ -113,6 +113,42 @@ AI coding agents must:
 8. Avoid unnecessary refactoring.
 9. Add or update tests for relevant changes.
 10. Update documentation when behavior or architecture changes.
+
+### Mandatory Task and Branch Workflow
+
+These instructions apply to Codex, GitHub Copilot, and any other AI or human contributor making repository changes.
+
+Before editing or generating code:
+
+1. Identify the task or GitHub Issue number and summarize the requested outcome.
+2. If the task has no identifier, ask the user for an issue number or a short task ID. Do not invent an issue number. A short task ID may be used when no GitHub Issue exists.
+3. Check the current branch and working-tree status. Preserve any pre-existing user changes; do not discard, overwrite, or stage unrelated work.
+4. Never start task implementation directly on `main`. If currently on `main`, create and switch to a dedicated task branch from the latest `origin/main` (or the repository's current default branch).
+5. If the working tree contains unrelated uncommitted changes, do not switch branches in a way that risks losing them. Ask the user how to proceed.
+6. Make only the requested task's changes on that branch.
+
+Use these branch name formats (lowercase short description, hyphens between words):
+
+- `feature/GP-123-short-description` — new functionality
+- `fix/GP-123-short-description` — bug fixes
+- `docs/GP-123-short-description` — documentation-only changes
+- `test/GP-123-short-description` — test-only changes
+- `chore/GP-123-short-description` — maintenance/tooling changes
+
+Replace `GP-123` with the actual GitHub Issue ID or agreed task ID. Never claim a task ID is a GitHub Issue unless it is one.
+
+Before submitting work:
+
+1. Run the relevant tests, checks, and formatting/lint commands available in the project. Report commands that could not be run and why.
+2. Review the diff for unrelated changes, secrets, generated artifacts, and accidental modifications.
+3. Use a commit message that includes the task ID, for example `GP-123: Add merchant registration validation`.
+4. Push the task branch and open a pull request targeting `main` (unless the repository's default branch has changed).
+5. Include the task ID in the PR title and describe the change, tests run, and any limitations in the PR body. Link the GitHub Issue when one exists (for example, `Closes #123`).
+6. Do not merge the PR unless the user explicitly asks and repository protections/checks are satisfied.
+
+If the task ID is missing, ask for it before editing. If a required branch cannot be created or pushed, stop and explain the blocker rather than silently working on `main`.
+
+**Important:** These are repository instructions for agent behavior. They guide compliant agents but do not technically prevent an agent from ignoring them or pushing directly to an unprotected branch. Protect `main` with GitHub branch rules/rulesets and required pull-request checks to enforce merge controls.
 
 ## 14. Handling Ambiguity
 
